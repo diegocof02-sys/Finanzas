@@ -707,7 +707,7 @@ function render(p){
 // PAGE: RESUMEN
 // ═══════════════════════════════════════════════
 let rMonth   = curMK();
-let rPeriod  = 'mes'; // 'mes' | 'ano'
+let rPeriod  = 'ano'; // 'mes' | 'ano'
 
 function renderResumen(){
   const total = totalMXN();
@@ -977,7 +977,7 @@ function renderCuentas(){
 // ═══════════════════════════════════════════════
 let gMonth  = curMK();
 let gCat    = 'all';
-let gPeriod = 'mes'; // 'mes' | 'ano'
+let gPeriod = 'ano'; // 'mes' | 'ano'
 const curYear = () => new Date().getFullYear().toString();
 
 function renderGastos(){
