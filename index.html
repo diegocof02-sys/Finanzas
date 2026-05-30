@@ -50,7 +50,7 @@ html[data-theme="light"] .icon-btn{background:#f1f5f9}
 html[data-theme="light"] .icon-btn:hover{background:#e2e8f0}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px}
-#app{display:flex;height:100%;overflow:hidden}
+#app{display:flex;height:100%;overflow:hidden;width:100%}
 
 /* Sidebar */
 .sidebar{width:var(--side);min-width:var(--side);background:var(--surface);
@@ -299,11 +299,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 /* Responsive */
 @media(max-width:768px){
   .sidebar{display:none !important}
-  .bottom-nav{display:flex !important}
+  .bottom-nav{
+    display:flex !important;
+    position:fixed;
+    bottom:0;left:0;right:0;
+    z-index:50;
+  }
+  .main-content{width:100%}
+  #pages{padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom,0))}
   .fab{bottom:calc(var(--nav) + 12px)}
   .page{padding:14px}
   .grid3{grid-template-columns:1fr 1fr 1fr}
-  .topbar-actions .icon-btn:not(#theme-btn){display:none}
+  .topbar-actions .icon-btn[onclick="openRatesModal()"]{display:none}
 }
 @media(min-width:769px){
   .fab{bottom:24px;right:32px}
