@@ -298,14 +298,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 
 /* Responsive */
 @media(max-width:768px){
-  .sidebar{display:none}
-  .bottom-nav{display:flex}
+  .sidebar{display:none !important}
+  .bottom-nav{display:flex !important}
   .fab{bottom:calc(var(--nav) + 12px)}
   .page{padding:14px}
   .grid3{grid-template-columns:1fr 1fr 1fr}
+  .topbar-actions .icon-btn:not(#theme-btn){display:none}
 }
 @media(min-width:769px){
   .fab{bottom:24px;right:32px}
+  .bottom-nav{display:none !important}
 }
 </style>
 </head>
