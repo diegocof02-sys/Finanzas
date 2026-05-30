@@ -2,7 +2,7 @@
   "name": "Panel Financiero Personal",
   "short_name": "Finanzas",
   "description": "Panel financiero personal con cuentas multi-moneda",
-  "start_url": "/",
+  "start_url": "/finanzas/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
