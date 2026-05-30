@@ -755,12 +755,12 @@ function renderResumen(){
 
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;margin-top:4px">
       <div class="sec" style="margin:0">Gastos del Periodo</div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <div class="seg" style="margin:0;width:160px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="seg" style="margin:0;width:160px;flex-shrink:0">
           <button class="seg-btn ${rPeriod==='mes'?'active':''}" onclick="setRPeriod('mes')">Mes</button>
           <button class="seg-btn ${rPeriod==='ano'?'active':''}" onclick="setRPeriod('ano')">Año ${curYear()}</button>
         </div>
-        ${rPeriod==='mes'?`<div class="month-nav">
+        ${rPeriod==='mes'?`<div class="month-nav" style="margin-bottom:0">
           <button onclick="chRM(-1)">&#8249;</button>
           <span>${mName(rMonth)}</span>
           <button onclick="chRM(1)">&#8250;</button>
@@ -1008,11 +1008,11 @@ function renderGastos(){
     </div>
 
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-      <div class="seg" style="margin:0;width:160px">
+      <div class="seg" style="margin:0;width:160px;flex-shrink:0">
         <button class="seg-btn ${gPeriod==='mes'?'active':''}" onclick="setGPeriod('mes')">Mes</button>
         <button class="seg-btn ${gPeriod==='ano'?'active':''}" onclick="setGPeriod('ano')">Año ${curYear()}</button>
       </div>
-      ${gPeriod==='mes'?`<div class="month-nav">
+      ${gPeriod==='mes'?`<div class="month-nav" style="margin-bottom:0">
         <button onclick="chGM(-1)">&#8249;</button>
         <span>${mName(gMonth)}</span>
         <button onclick="chGM(1)">&#8250;</button>
