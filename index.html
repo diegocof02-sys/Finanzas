@@ -706,15 +706,19 @@ function render(p){
 // ═══════════════════════════════════════════════
 // PAGE: RESUMEN
 // ═══════════════════════════════════════════════
-let rMonth = curMK();
+let rMonth   = curMK();
+let rPeriod  = 'mes'; // 'mes' | 'ano'
 
 function renderResumen(){
   const total = totalMXN();
   const goal  = S.goal;
   const pct   = Math.min(100,(total/goal)*100);
-  const ct    = buildCatTotals(rMonth);
-  const mTxs  = monthExpenses(rMonth);
+  const rPrefix = rPeriod==='ano' ? curYear() : rMonth;
+  const mTxs  = S.transactions.filter(t=>t.type==='expense'&&t.date.startsWith(rPrefix));
   const mTotal= mTxs.reduce((s,t)=>s+toMXN(t.amount,t.currency),0);
+  const ct    = {};
+  CATS.forEach(c=>ct[c.id]=0);
+  mTxs.forEach(t=>{ ct[t.cat||'otros']=(ct[t.cat||'otros']||0)+toMXN(t.amount,t.currency); });
 
   const months=[];
   for(let i=5;i>=0;i--){
@@ -749,16 +753,22 @@ function renderResumen(){
       </div>
     </div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
-      <div class="sec" style="margin:0">Gastos del Mes</div>
-      <div class="month-nav">
-        <button onclick="chRM(-1)">&#8249;</button>
-        <span>${mName(rMonth)}</span>
-        <button onclick="chRM(1)">&#8250;</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;margin-top:4px">
+      <div class="sec" style="margin:0">Gastos del Periodo</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="seg" style="margin:0;width:160px">
+          <button class="seg-btn ${rPeriod==='mes'?'active':''}" onclick="setRPeriod('mes')">Mes</button>
+          <button class="seg-btn ${rPeriod==='ano'?'active':''}" onclick="setRPeriod('ano')">Año ${curYear()}</button>
+        </div>
+        ${rPeriod==='mes'?`<div class="month-nav">
+          <button onclick="chRM(-1)">&#8249;</button>
+          <span>${mName(rMonth)}</span>
+          <button onclick="chRM(1)">&#8250;</button>
+        </div>`:''}
       </div>
     </div>
 
-    <div class="grid2" style="margin-bottom:16px">
+    <div class="grid2" style="margin-bottom:14px">
       <div class="stat-card">
         <div class="stat-label">Total gastado</div>
         <div class="stat-value" style="font-size:1.1rem;color:var(--danger)">${'$'+mTotal.toLocaleString('es-MX',{maximumFractionDigits:0})}</div>
@@ -774,35 +784,36 @@ function renderResumen(){
       </div>
     </div>
 
-    <div class="sec">Gastos por Categoria — ${mName(rMonth)}</div>
-    <div class="chart-box" style="margin-bottom:14px" id="cats-wrap">
-      <canvas id="ch-cats"></canvas>
+    <div class="sec">Por Categoria — ${rPeriod==='ano'?curYear():mName(rMonth)}</div>
+    ${Object.values(ct).some(v=>v>0)?`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px">
+      ${CATS.filter(c=>ct[c.id]>0).sort((a,b)=>ct[b.id]-ct[a.id]).map((c,i,arr)=>{
+        const pct2=mTotal>0?(ct[c.id]/mTotal*100).toFixed(1):0;
+        const barW=mTotal>0?(ct[c.id]/mTotal*100):0;
+        return `<div style="padding:10px 14px;${i<arr.length-1?'border-bottom:1px solid var(--border)':''}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:8px;height:8px;border-radius:50%;background:${c.color};flex-shrink:0"></div>
+              <span style="font-size:.82rem;font-weight:500">${c.name}</span>
+            </div>
+            <div>
+              <span style="font-size:.85rem;font-weight:700">$${ct[c.id].toLocaleString('es-MX',{maximumFractionDigits:0})}</span>
+              <span style="font-size:.7rem;color:var(--muted);margin-left:6px">${pct2}%</span>
+            </div>
+          </div>
+          <div style="background:var(--surface2);border-radius:100px;height:4px;overflow:hidden">
+            <div style="height:100%;width:${barW}%;background:${c.color};border-radius:100px"></div>
+          </div>
+        </div>`;
+      }).join('')}
     </div>
+    `:`<div class="empty" style="margin-bottom:14px">Sin gastos en este periodo</div>`}
 
     <div class="sec">Gastos Mensuales (6 meses)</div>
     <div class="chart-box" style="margin-bottom:20px">
       <canvas id="ch-monthly"></canvas>
     </div>
   `;
-
-  // Category doughnut
-  killChart('cats');
-  const catsData = CATS.filter(c=>ct[c.id]>0);
-  if(catsData.length){
-    CH['cats']=new Chart(document.getElementById('ch-cats').getContext('2d'),{
-      type:'doughnut',
-      data:{
-        labels:catsData.map(c=>c.name),
-        datasets:[{data:catsData.map(c=>ct[c.id]),backgroundColor:catsData.map(c=>c.color),borderWidth:0,hoverOffset:4}]
-      },
-      options:{responsive:true,cutout:'68%',plugins:{
-        legend:{position:'bottom',labels:{color:'#94a3b8',font:{size:10},padding:10,boxWidth:10}},
-        tooltip:{callbacks:{label:c=>' $'+c.parsed.toLocaleString('es-MX',{maximumFractionDigits:0})+' MXN'}}
-      }}
-    });
-  } else {
-    document.getElementById('cats-wrap').innerHTML='<div class="empty">Sin gastos registrados este mes</div>';
-  }
 
   // Monthly bar
   killChart('monthly');
@@ -832,6 +843,7 @@ function chRM(d){
   rMonth=new Date(y,m-1+d,1).toISOString().slice(0,7);
   renderResumen();
 }
+function setRPeriod(p){ rPeriod=p; renderResumen(); }
 
 // ═══════════════════════════════════════════════
 // PAGE: CUENTAS
@@ -963,21 +975,30 @@ function renderCuentas(){
 // ═══════════════════════════════════════════════
 // PAGE: GASTOS  (registro independiente, sin tocar saldos)
 // ═══════════════════════════════════════════════
-let gMonth = curMK();
-let gCat   = 'all';
+let gMonth  = curMK();
+let gCat    = 'all';
+let gPeriod = 'mes'; // 'mes' | 'ano'
+const curYear = () => new Date().getFullYear().toString();
 
 function renderGastos(){
   const pg = document.getElementById('page-gastos');
-  let txs = S.transactions.filter(t=>t.type==='expense'&&t.date.startsWith(gMonth));
+  const prefix = gPeriod==='ano' ? curYear() : gMonth;
+  let txs = S.transactions.filter(t=>t.type==='expense'&&t.date.startsWith(prefix));
   if(gCat!=='all') txs = txs.filter(t=>t.cat===gCat);
   txs = [...txs].sort((a,b)=>b.date.localeCompare(a.date));
   const total = txs.reduce((s,t)=>s+toMXN(t.amount,t.currency),0);
-  const ct = buildCatTotals(gMonth);
+  // category totals for selected period
+  const ct = {};
+  CATS.forEach(c=>ct[c.id]=0);
+  S.transactions.filter(t=>t.type==='expense'&&t.date.startsWith(prefix))
+    .forEach(t=>{ ct[t.cat||'otros']=(ct[t.cat||'otros']||0)+toMXN(t.amount,t.currency); });
 
   pg.innerHTML=`
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:14px">
       <div>
-        <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600">Gastos del mes</div>
+        <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600">
+          Gastos — ${gPeriod==='ano' ? curYear() : mName(gMonth)}
+        </div>
         <div style="font-size:1.5rem;font-weight:800;color:var(--danger)">
           $${total.toLocaleString('es-MX',{maximumFractionDigits:0})} MXN
         </div>
@@ -986,16 +1007,16 @@ function renderGastos(){
       <button class="btn btn-primary" onclick="openExpenseModal()">+ Registrar</button>
     </div>
 
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);
-      padding:10px 14px;margin-bottom:14px;font-size:.75rem;color:var(--muted);line-height:1.5">
-      Los gastos son un registro independiente y no afectan el saldo de las cuentas.
-      Para retirar dinero de una cuenta, usar la seccion de Movimientos.
-    </div>
-
-    <div class="month-nav">
-      <button onclick="chGM(-1)">&#8249;</button>
-      <span>${mName(gMonth)}</span>
-      <button onclick="chGM(1)">&#8250;</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="seg" style="margin:0;width:160px">
+        <button class="seg-btn ${gPeriod==='mes'?'active':''}" onclick="setGPeriod('mes')">Mes</button>
+        <button class="seg-btn ${gPeriod==='ano'?'active':''}" onclick="setGPeriod('ano')">Año ${curYear()}</button>
+      </div>
+      ${gPeriod==='mes'?`<div class="month-nav">
+        <button onclick="chGM(-1)">&#8249;</button>
+        <span>${mName(gMonth)}</span>
+        <button onclick="chGM(1)">&#8250;</button>
+      </div>`:''}
     </div>
 
     <div class="pill-tabs" style="overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px">
@@ -1059,6 +1080,7 @@ function chGM(d){
   renderGastos();
 }
 function fGCat(c){ gCat=c; renderGastos(); }
+function setGPeriod(p){ gPeriod=p; renderGastos(); }
 
 // ═══════════════════════════════════════════════
 // PAGE: MOVER
